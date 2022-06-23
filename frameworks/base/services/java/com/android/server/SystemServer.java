@@ -492,9 +492,11 @@ public final class SystemServer {
             performPendingShutdown();
 
             // Initialize the system context.
+            // 创建系统上下文
             createSystemContext();
 
             // Create the system service manager.
+            // 创建 SystemServiceManager
             mSystemServiceManager = new SystemServiceManager(mSystemContext);
             mSystemServiceManager.setStartInfo(mRuntimeRestart,
                     mRuntimeStartElapsedTime, mRuntimeStartUptime);
@@ -508,9 +510,9 @@ public final class SystemServer {
         // Start services.
         try {
             traceBeginAndSlog("StartServices");
-            startBootstrapServices();
-            startCoreServices();
-            startOtherServices();
+            startBootstrapServices(); // 启动引导服务 --> AMS
+            startCoreServices(); // 启动核心服务，系统相关
+            startOtherServices(); // 启动其他服务 --> WMS
             SystemServerInitThreadPool.shutdown();
         } catch (Throwable ex) {
             Slog.e("System", "******************************************");
@@ -713,6 +715,7 @@ public final class SystemServer {
 
         // We need the default display before we can initialize the package manager.
         traceBeginAndSlog("WaitForDisplay");
+        // 状态设置，每种状态下都会启动不同的服务，状态从小到大，0,100，480,500,550,600,1000
         mSystemServiceManager.startBootPhase(SystemService.PHASE_WAIT_FOR_DEFAULT_DISPLAY);
         traceEnd();
 

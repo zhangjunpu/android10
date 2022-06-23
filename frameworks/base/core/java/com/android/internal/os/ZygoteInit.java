@@ -535,6 +535,7 @@ public class ZygoteInit {
             /*
              * Pass the remaining arguments to SystemServer.
              */
+            // 通过反射启动 SystemServer.main
             return ZygoteInit.zygoteInit(parsedArgs.mTargetSdkVersion,
                     parsedArgs.mRemainingArgs, cl);
         }
@@ -777,6 +778,8 @@ public class ZygoteInit {
             }
 
             /* Request to fork the system server process */
+            // 请求 fork 出 SystemServer 进程
+            // pid 返回值：Zygote 进程返回值为子进程 pid，子进程返回值为 0；
             pid = Zygote.forkSystemServer(
                     parsedArgs.mUid, parsedArgs.mGid,
                     parsedArgs.mGids,
@@ -789,12 +792,14 @@ public class ZygoteInit {
         }
 
         /* For child process */
+        // pid == 0，说明子进程才执行
         if (pid == 0) {
             if (hasSecondZygote(abiList)) {
                 waitForSecondaryZygote(socketName);
             }
 
             zygoteServer.closeServerSocket();
+            // 启动 SystemServer.main
             return handleSystemServerProcess(parsedArgs);
         }
 
@@ -900,11 +905,14 @@ public class ZygoteInit {
             zygoteServer = new ZygoteServer(isPrimaryZygote);
 
             if (startSystemServer) {
+                // 返回 MethodAndArgsCaller 类，run 方法通过反射调用 SystemServer.main 方法
                 Runnable r = forkSystemServer(abiList, zygoteSocketName, zygoteServer);
 
                 // {@code r == null} in the parent (zygote) process, and {@code r != null} in the
                 // child (system_server) process.
+                // Zygote 进程返回 r == null，子进程 r != null
                 if (r != null) {
+                    // 反射调用 SystemServer.main 方法
                     r.run();
                     return;
                 }
@@ -914,6 +922,7 @@ public class ZygoteInit {
 
             // The select loop returns early in the child process after a fork and
             // loops forever in the zygote.
+            // 开启死循环，等待 fork 进程请求
             caller = zygoteServer.runSelectLoop(abiList);
         } catch (Throwable ex) {
             Log.e(TAG, "System zygote died with exception", ex);
@@ -979,7 +988,9 @@ public class ZygoteInit {
         RuntimeInit.redirectLogStreams();
 
         RuntimeInit.commonInit();
+        // 启动 Binder 线程池
         ZygoteInit.nativeZygoteInit();
+        // 反射运行 SystemServer.main
         return RuntimeInit.applicationInit(targetSdkVersion, argv, classLoader);
     }
 
@@ -994,5 +1005,12 @@ public class ZygoteInit {
         return RuntimeInit.findStaticMain(args.startClass, args.startArgs, classLoader);
     }
 
+    // 调用链：
+    // AndroidRuntime.cpp#com_android_internal_os_ZygoteInit_nativeZygoteInit ->
+    // gCurRuntime.onZygoteInit() -> app_main.cpp#onZygoteInit();
+    // 最终调用：
+    //  sp<ProcessState> proc = ProcessState::self();
+    //  proc->startThreadPool();
+    // 启动 Binder 线程池
     private static final native void nativeZygoteInit();
 }

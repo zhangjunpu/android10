@@ -64,6 +64,7 @@ public final class Zygote {
     /** Enable logging of third-party JNI activity. */
     public static final int DEBUG_ENABLE_JNI_LOGGING = 1 << 4;
     /** Force generation of native debugging information. */
+    /** Force generation of native debugging information. */
     public static final int DEBUG_GENERATE_DEBUG_INFO = 1 << 5;
     /** Always use JIT-ed code. */
     public static final int DEBUG_ALWAYS_JIT = 1 << 6;
@@ -348,6 +349,9 @@ public final class Zygote {
         return pid;
     }
 
+    // 最终调用 com_android_internal_os_Zygote.cpp 文件中的 com_android_internal_os_Zygote_nativeForkSystemServer 方法
+    // AndroidRuntime.cpp#register_com_android_internal_os_Zygote ->
+    // com_android_internal_os_Zygote.cpp#com_android_internal_os_Zygote_nativeForkSystemServer
     private static native int nativeForkSystemServer(int uid, int gid, int[] gids, int runtimeFlags,
             int[][] rlimits, long permittedCapabilities, long effectiveCapabilities);
 

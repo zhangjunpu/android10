@@ -940,7 +940,7 @@ static pid_t ForkCommon(JNIEnv* env, bool is_system_server,
   }
 
   android_fdsan_error_level fdsan_error_level = android_fdsan_get_error_level();
-
+  // 调用 fork 方法
   pid_t pid = fork();
 
   if (pid == 0) {
@@ -1379,7 +1379,7 @@ static jint com_android_internal_os_Zygote_nativeForkAndSpecialize(
       fds_to_close.push_back(gUsapPoolEventFD);
       fds_to_ignore.push_back(gUsapPoolEventFD);
     }
-
+    // 内部调用 fork 方法
     pid_t pid = ForkCommon(env, false, fds_to_close, fds_to_ignore);
 
     if (pid == 0) {
@@ -1404,7 +1404,7 @@ static jint com_android_internal_os_Zygote_nativeForkSystemServer(
     fds_to_close.push_back(gUsapPoolEventFD);
     fds_to_ignore.push_back(gUsapPoolEventFD);
   }
-
+  // fork 进程
   pid_t pid = ForkCommon(env, true,
                          fds_to_close,
                          fds_to_ignore);

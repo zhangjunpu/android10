@@ -286,6 +286,7 @@ public class RuntimeInit {
         Class<?> cl;
 
         try {
+            // 反射获取 SystemServer.class
             cl = Class.forName(className, true, classLoader);
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException(
@@ -295,6 +296,7 @@ public class RuntimeInit {
 
         Method m;
         try {
+            // 反射获取 main 方法
             m = cl.getMethod("main", new Class[] { String[].class });
         } catch (NoSuchMethodException ex) {
             throw new RuntimeException(
@@ -316,6 +318,7 @@ public class RuntimeInit {
          * clears up all the stack frames that were required in setting
          * up the process.
          */
+        // 返回一个 Runnable，在 ZygoteInit.main() 方法中启动
         return new MethodAndArgsCaller(m, argv);
     }
 
@@ -360,6 +363,7 @@ public class RuntimeInit {
         Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
 
         // Remaining arguments are passed to the start class's static main
+        // 传参给 static main 方法
         return findStaticMain(args.startClass, args.startArgs, classLoader);
     }
 
@@ -489,6 +493,7 @@ public class RuntimeInit {
 
         public void run() {
             try {
+                // 反射调用 SystemServer.main 方法
                 mMethod.invoke(null, new Object[] { mArgs });
             } catch (IllegalAccessException ex) {
                 throw new RuntimeException(ex);
